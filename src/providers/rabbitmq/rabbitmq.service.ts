@@ -1,0 +1,42 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { connect, Connection, Channel, Options } from 'amqplib';
+import { ConfigService } from '@nestjs/config';
+import { Configuration } from '@/config/configuration.interface';
+
+@Injectable()
+export class RabbitMqService {
+  private logger = new Logger(RabbitMqService.name);
+  private config: Configuration['rabbitmq'];
+  connection: Connection;
+  channel: Channel;
+
+  constructor(private configService: ConfigService) {
+    console.log(11)
+    this.config = this.configService.get<Configuration['rabbitmq']>('rabbitmq');
+    if (!this.config) this.logger.warn('No RabbitMQ config');
+  }
+
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+
+  async $connect() {
+    this.connection = await connect(this.config);
+    this.channel = await this.connection.createChannel();
+    this.channel.assertExchange('app.node.bff', 'topic');
+    this.channel.assertQueue('mspbot.node.pdf', { durable: true });
+  }
+
+  async $disconnect() {
+    this.connection && this.connection.close();
+    this.channel && this.channel.close();
+  }
+
+  send(queue: string, content: string, options?: Options.Publish) {
+    this.channel.sendToQueue(queue, Buffer.from(content), options);
+  }
+}
