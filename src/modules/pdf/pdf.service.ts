@@ -20,28 +20,32 @@ export class PdfService {
     const urlSafe = safeUrl(url);
     const query = parseUrl(url);
 
-      const result = await this.prisma.pdf.create({
-        data: { url, urlSafe, userId, attributes: JSON.stringify(data) },
-      });
+    const result = await this.prisma.pdf.create({
+      data: { url, urlSafe, userId, attributes: JSON.stringify(data) },
+    });
 
-      this.puppeteer.render(url, {
-        ...merge(data, query),
-        resolve: async (file) => {
-          this.amq.send('mspbot.node.pdf', file);
-          await this.prisma.pdf.update({
-            where: { id: result.id },
-            data: { isVerified: true },
-          });
-        },
-        reject: async (error) => {
-          this.amq.send(
-            'mspbot.node.pdf',
-            Buffer.from(JSON.stringify(error.response)),
-          );
-        },
-      });
+    this.puppeteer.render(url, {
+      ...merge(data, query),
+      resolve: async (file) => {
+        this.amq.send(
+          'mspbot.node.pdf',
+          Buffer.from(JSON.stringify({ statusCode: 200, data: file, userId })),
+        );
+        await this.prisma.pdf.update({
+          where: { id: result.id },
+          data: { isVerified: true },
+        });
+      },
 
-      return result;
-   
+
+      reject: async (error) => {
+        this.amq.send(
+          'mspbot.node.pdf',
+          Buffer.from(JSON.stringify({ ...error.response, userId })),
+        );
+      },
+    });
+
+    return result;
   }
 }
