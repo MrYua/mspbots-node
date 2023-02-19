@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `pdf` MODIFY `userId` VARCHAR(191) NOT NULL;

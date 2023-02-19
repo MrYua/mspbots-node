@@ -7,6 +7,7 @@ const int = (val: string | undefined, num: number): number =>
   val ? (isNaN(parseInt(val)) ? num : parseInt(val)) : num;
 
 const configFunction: ConfigFactory<Configuration> = () => ({
+  port: int(process.env.PORT, 3000),
   swagger: {
     version: process.env.SWAGGER_VERSIONS,
     title: process.env.SWAGGER_TITLE ?? 'swagger-api',
@@ -18,7 +19,7 @@ const configFunction: ConfigFactory<Configuration> = () => ({
     hostname: process.env.RABBITMQ_HOST ?? 'localhost',
     port: int(process.env.RABBITMQ_PORT, 5672),
     username: process.env.RABBITMQ_USERNAME ?? 'guest',
-    password: process.env.RABBITMQ_UPASSWORD ?? 'q1w2e3..',
+    password: process.env.RABBITMQ_UPASSWORD ?? 'guest',
   },
 });
 

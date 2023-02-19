@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { connect, Connection, Channel, Options } from 'amqplib';
 import { ConfigService } from '@nestjs/config';
 import { Configuration } from '@/config/configuration.interface';
+import fs from 'fs';
 
 @Injectable()
 export class RabbitMqService {
@@ -11,7 +12,6 @@ export class RabbitMqService {
   channel: Channel;
 
   constructor(private configService: ConfigService) {
-    console.log(11)
     this.config = this.configService.get<Configuration['rabbitmq']>('rabbitmq');
     if (!this.config) this.logger.warn('No RabbitMQ config');
   }
@@ -36,7 +36,7 @@ export class RabbitMqService {
     this.channel && this.channel.close();
   }
 
-  send(queue: string, content: string, options?: Options.Publish) {
-    this.channel.sendToQueue(queue, Buffer.from(content), options);
+  send(queue: string, content: Buffer, options?: Options.Publish) {
+    this.channel.sendToQueue(queue, content, options);
   }
 }
