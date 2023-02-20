@@ -12,8 +12,8 @@ datasource db {
 
 model Pdf {
   createdAt  DateTime @default(now())
-  url        String
-  urlSafe    String
+  url        String   @db.VarChar(1000)
+  urlSafe    String   @db.VarChar(1000)
   id         Int      @id @default(autoincrement())
   isVerified Boolean  @default(false)
   updatedAt  DateTime @updatedAt

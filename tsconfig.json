@@ -19,7 +19,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "lib": [
-      "ESNext"
+      "ESNext",
+      "DOM"
     ],
     "paths": {
       "@/*": [

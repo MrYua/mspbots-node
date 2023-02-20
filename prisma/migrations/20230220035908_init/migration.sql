@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `pdf` MODIFY `url` VARCHAR(1000) NOT NULL,
+    MODIFY `urlSafe` VARCHAR(1000) NOT NULL;
