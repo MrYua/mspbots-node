@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import configFunction from '@/config/configuration';
 import { PdfModule } from '@/modules/pdf/pdf.module';
 import { HttpExceptionFilter } from '@/filters/http-exception.filter';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from '@/providers/prisma/prisma.module';
 
 @Module({
@@ -14,7 +14,7 @@ import { PrismaModule } from '@/providers/prisma/prisma.module';
       envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
     }),
     PdfModule,
-    PrismaModule
+    PrismaModule,
   ],
   providers: [
     {
