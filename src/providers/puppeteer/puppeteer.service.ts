@@ -34,7 +34,11 @@ export class PuppeteerService {
           ],
         });
 
-        // await page.waitForSelector('[id^=dashboard-page-tag-]', { timeout: 0 });
+        await page.evaluate(() => {
+
+        })
+
+        await page.waitForSelector('[id^=dashboard-page-tag-]', { timeout: 0 });
 
         const file = await page.pdf(opts);
 

@@ -13,6 +13,7 @@ export class RabbitMqService {
 
   constructor(private configService: ConfigService) {
     this.config = this.configService.get<Configuration['rabbitmq']>('rabbitmq');
+
     if (!this.config) this.logger.warn('No RabbitMQ config');
   }
 

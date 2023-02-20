@@ -29,7 +29,14 @@ export class PdfService {
       resolve: async (file) => {
         this.amq.send(
           'mspbot.node.pdf',
-          Buffer.from(JSON.stringify({ statusCode: 200, data: file, userId })),
+          Buffer.from(
+            JSON.stringify({
+              statusCode: 200,
+              data: file,
+              userId,
+              id: result.id,
+            }),
+          ),
         );
         await this.prisma.pdf.update({
           where: { id: result.id },
@@ -37,11 +44,12 @@ export class PdfService {
         });
       },
 
-
       reject: async (error) => {
         this.amq.send(
           'mspbot.node.pdf',
-          Buffer.from(JSON.stringify({ ...error.response, userId })),
+          Buffer.from(
+            JSON.stringify({ ...error.response, userId, id: result.id }),
+          ),
         );
       },
     });
