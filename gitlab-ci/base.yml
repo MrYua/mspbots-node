@@ -1,0 +1,46 @@
+before_script:
+  # Setup SSH deploy keys
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  - mkdir -p ~/.ssh
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+  - docker info
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+  - SCRIPT_DIR=/home/mspbots/docker/$CI_PROJECT_TITLE
+  - DEPLOY_DIR=/home/mspbots/git
+  - DEPLOY_SCRIPT_DIR=/home/mspbots/git/sh/$CI_PROJECT_TITLE
+  - CUR_BRANCH=$CI_COMMIT_REF_NAME
+  - |
+    declare -A CLUSTER_ID_MAP=(["$BRANCH_INT"]="1" ["$BRANCH_RELEASE"]="1" ["$BRANCH_INT2"]="2" ["$BRANCH_RELEASE2"]="2")
+    CLUSTER_ID=${CLUSTER_ID_MAP[$CUR_BRANCH]}
+    
+    DEFAULT_CLUSTER_ID=1
+    SHELL_CLUSTER=""
+    if [ "$CLUSTER_ID" != "$DEFAULT_CLUSTER_ID" ]; then
+      SHELL_CLUSTER="$CLUSTER_ID"
+    fi
+    DEPLOY_SHELL="deploy${SHELL_CLUSTER}.sh"
+    echo "DEPLOY_SHELL=[$DEPLOY_SHELL]"
+
+    declare -A DOCKER_HOST_MAP=(["$BRANCH_INT"]="$DOCKER_HOST_INT" ["$BRANCH_INT2"]="$DOCKER_HOST_INT2" ["$BRANCH_RELEASE"]="$DOCKER_HOST_APP" ["$BRANCH_RELEASE2"]="$DOCKER_HOST_APP2")
+    DOCKER_HOST=${DOCKER_HOST_MAP[$CUR_BRANCH]}
+    
+    declare -A DEPLOY_HOST_MAP=(["$BRANCH_INT"]="10.10.71.230" ["$BRANCH_INT2"]="" ["$BRANCH_RELEASE"]="10.10.70.233" ["$BRANCH_RELEASE2"]="")
+    DEPLOY_HOST=${DEPLOY_HOST_MAP[$CUR_BRANCH]}
+    
+    declare -A DEPLOY_NODE_MAP=(["$BRANCH_INT"]="mspbots_int_service04" ["$BRANCH_INT2"]="" ["$BRANCH_RELEASE"]="mspbots_prd_app03" ["$BRANCH_RELEASE2"]="")
+    export DEPLOY_NODE=${DEPLOY_NODE_MAP[$CUR_BRANCH]}
+    
+    declare -A DEPLOY_BRANCH_MAP=(["$BRANCH_INT"]=$BRANCH_INT ["$BRANCH_INT2"]=$BRANCH_INT ["$BRANCH_RELEASE"]="$BRANCH_RELEASE" ["$BRANCH_RELEASE2"]="$BRANCH_RELEASE")
+    export DEPLOY_BRANCH=${DEPLOY_BRANCH_MAP[$CUR_BRANCH]}
+    
+    declare -A ACTIVE_PROFILE_MAP=(["$BRANCH_INT"]="int" ["$BRANCH_INT2"]="int" ["$BRANCH_RELEASE"]="app" ["$BRANCH_RELEASE2"]="app")
+    export ACTIVE_PROFILE=${ACTIVE_PROFILE_MAP[$CUR_BRANCH]}
+    
+    echo "CUR_BRANCH=[$CUR_BRANCH], CI_COMMIT_BRANCH=[$CI_COMMIT_BRANCH], CI_PIPELINE_SOURCE=[$CI_PIPELINE_SOURCE]"
+    echo "CLUSTER_ID=[$CLUSTER_ID], DOCKER_HOST=[$DOCKER_HOST], DEPLOY_HOST=[$DEPLOY_HOST]"
+    echo "SCRIPT_DIR=[$SCRIPT_DIR]"
+
+  - export

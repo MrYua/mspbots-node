@@ -1,0 +1,37 @@
+# include:
+#   - https://docs.gitlab.com/ee/ci/yaml/index.html#include
+#   - https://docs.gitlab.com/ee/ci/yaml/includes.html#use-variables-with-include
+# multi-job in a stage:
+#   - https://docs.gitlab.com/ee/ci/pipelines/
+#   - https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/27188
+# Hide keywords or job, and combine Anchors
+#   - https://meigit.readthedocs.io/en/latest/gitlab_ci_.gitlab-ci.yml_detail.html#id15
+ 
+stages:
+  - build
+  - deploy
+
+include:
+  - local: 'gitlab-ci/base.yml'
+    rules:
+      - if: $CI_COMMIT_BRANCH =~ /^INT.*/ || $CI_COMMIT_BRANCH =~ /^release.*/
+
+  - local: 'gitlab-ci/int-base.yml'
+    rules:
+      - if: $CI_COMMIT_BRANCH =~ /^INT.*/
+
+  - local: 'gitlab-ci/app-base.yml'
+    rules:
+      - if: $CI_COMMIT_BRANCH =~ /^release.*/
+
+
+############# real job section #############
+build:
+  stage: build
+  script:
+    - ssh mspbots@${DEPLOY_HOST} "mkdir -p $DEPLOY_SCRIPT_DIR"
+    - scp script/*.sh mspbots@$DEPLOY_HOST:$DEPLOY_SCRIPT_DIR
+    - ssh mspbots@${DEPLOY_HOST} "cd $DEPLOY_SCRIPT_DIR ; chmod +x *.sh && sh build.sh $CUR_BRANCH $CI_PROJECT_TITLE $CI_REGISTRY $DEPLOY_DIR $DEPLOY_NODE $DEPLOY_BRANCH $ACTIVE_PROFILE $CI_JOB_NAME"
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH =~ /^INT.*/ || $CI_COMMIT_BRANCH =~ /^release.*/
