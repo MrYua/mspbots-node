@@ -87,6 +87,7 @@ export class PuppeteerService {
           timeout: 10000,
         });
 
+
         const file = await page.pdf(opts);
 
         await page.close();
@@ -97,7 +98,6 @@ export class PuppeteerService {
 
       return file;
     } catch (error) {
-      console.log(error, 'error');
       isFunction(opts.reject) &&
         opts.reject(new BadRequestException(PDF_CREATE));
     }

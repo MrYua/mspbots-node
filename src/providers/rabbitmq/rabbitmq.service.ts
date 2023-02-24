@@ -30,6 +30,14 @@ export class RabbitMqService {
     this.channel = await this.connection.createChannel();
     this.channel.assertExchange('app.node.bff', 'topic');
     this.channel.assertQueue('mspbot.node.pdf', { durable: true });
+
+    // this.channel.consume('mspbot.node.pdf', (msg) => {
+    //   console.log( JSON.parse(msg.content.toString()).data.data instanceof Array);
+    //   fs.writeFileSync(
+    //     'index.pdf',
+    //     Buffer.from(JSON.parse(msg.content.toString()).data.data),
+    //   );
+    // });
   }
 
   async $disconnect() {

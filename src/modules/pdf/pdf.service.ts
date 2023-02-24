@@ -16,45 +16,41 @@ export class PdfService {
   ) {}
 
   async createPdf(userId: string, data: CreatePdfDto) {
-      const { url } = data;
-      const urlSafe = safeUrl(url);
-      const query = parseUrl(url);
+    const { url } = data;
+    const urlSafe = safeUrl(url);
+    const query = parseUrl(url);
 
-      const result = await this.prisma.pdf.create({
-        data: { url, urlSafe, userId, attributes: JSON.stringify(data) },
-      });
+    const result = await this.prisma.pdf.create({
+      data: { url, urlSafe, userId, attributes: JSON.stringify(data) },
+    });
 
-      this.puppeteer.render(url, {
-        ...merge(data, query),
-        resolve: async (file) => {
-          this.amq.send(
-            'mspbot.node.pdf',
-            Buffer.from(
-              JSON.stringify({
-                statusCode: 200,
-                data: file,
-                userId,
-                id: result.id,
-              }),
-            ),
-          );
-          await this.prisma.pdf.update({
-            where: { id: result.id },
-            data: { isVerified: true },
-          });
-        },
+    this.puppeteer.render(url, {
+      ...merge(data, query),
+      resolve: async (file) => {
+        this.amq.send(
+          'mspbot.node.pdf',
+          Buffer.from(
+            JSON.stringify({
+              statusCode: 200,
+              file,
+              data: result,
+            }),
+          ),
+        );
+        await this.prisma.pdf.update({
+          where: { id: result.id },
+          data: { isVerified: true },
+        });
+      },
 
-        reject: async (error) => {
-          this.amq.send(
-            'mspbot.node.pdf',
-            Buffer.from(
-              JSON.stringify({ ...error.response, userId, id: result.id }),
-            ),
-          );
-        },
-      });
+      reject: async (error) => {
+        this.amq.send(
+          'mspbot.node.pdf',
+          Buffer.from(JSON.stringify({ ...error.response, data: result })),
+        );
+      },
+    });
 
-      return result;
-  
+    return result;
   }
 }

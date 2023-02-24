@@ -9,6 +9,8 @@ import {
 } from 'class-validator';
 import { PaperFormat } from 'puppeteer';
 
+type DeviceFormat = 'SERVICE' | 'FRONTED';
+
 export class CreatePdfDto {
   @IsUrl()
   @IsNotEmpty()
@@ -43,4 +45,9 @@ export class CreatePdfDto {
 
   @IsBoolean()
   landscape?: boolean;
+
+  @IsString()
+  @IsIn(['SERVICE', 'FRONTED'])
+  @IsOptional()
+  device?: DeviceFormat;
 }
